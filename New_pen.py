@@ -26,15 +26,15 @@ i2c = busio.I2C(board.SCL, board.SDA) #here we set up the time of flight distanc
 vl53 = adafruit_vl53l0x.VL53L0X(i2c) # distance sensor i2c
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(5, GPIO.IN, pull_up_down=GPIO.PUD_UP) #setup flip switch at GPIO pin 16
+GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP) #setup flip switch at GPIO pin 16
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(26, GPIO.IN, pull_up_down=GPIO.PUD_UP) #setup flip switch at gpio pin 12
+GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP) #setup flip switch at gpio pin 12
 ser = serial.Serial(port='/dev/ttyUSB0', baudrate=38400, bytesize=8, timeout =2, stopbits= serial.STOPBITS_ONE) #create a serial connection to the force guage via usb
 
 while True: #starts the main loop
-    switch1 = GPIO.input(5) #defines switch 1
-    switch2 = GPIO.input(26) #defines switch 2
+    switch1 = GPIO.input(12) #defines switch 1
+    switch2 = GPIO.input(16) #defines switch 2
     
     if switch1 == True: #first condition iteration if switch 1 is flipped down then continue
         display.print("IDLE") #display this text on LED
@@ -44,16 +44,18 @@ while True: #starts the main loop
         
         if switch2 == True: #secondary condition if switch 2 is down
             D = datetime.now().strftime('%H:%M')#define datetime as hours and minutes for display LED
-            display.print("PUSH")#text to display on LED
+            #display.print("PUSH")#text to display on LED
+            display.print(D) #display time as hour minutes on LED
+
             print('ready') #print text to terminal
             time.sleep(0.5)
         else: #if swtich 2 gets flipped up do the following
-            switch1 = GPIO.input(5)#redefine switch1 so that loop can be exited if first swithc is flipped
+            switch1 = GPIO.input(12)#redefine switch1 so that loop can be exited if first swithc is flipped
             if switch1 == True:
                 break
             filename = f"{time.strftime('%Y-%m-%d_%H-%M-%S')}_log.txt"# create file name with date time stamp
             folder1 = "/home/lavapub/Desktop/Pen_data_logs/" # stroes files on sd
-            #folder2 = "/media/lavapub/8690-8994/Pen_data/"#define folder to store files on usb
+            #folder2 = "/media/lavapub/BA7E-A637/Pen_data_logs/"#define folder to store files on usb
             filename1 = folder1 + filename
             #filename2 = folder2 + filename
             dd1 = open(filename1, mode='w') #create file dd1
@@ -64,8 +66,8 @@ while True: #starts the main loop
             t0 = time.time() #creates a time starting point at 0
             i = 0
             while switch2 == False: #while the switch 2 is flipped up, do the following
-                D = datetime.now().strftime('%H:%M')   
-                display.print(D) #display time as hour minutes on LED
+                #D = datetime.now().strftime('%H:%M')   
+                #display.print(D) #display time as hour minutes on LED
                 i += 1
             
                 t = time.time() - t0 #create time variable starting at 0
@@ -77,15 +79,17 @@ while True: #starts the main loop
 
                 f=float(x[0]) #creates variabe; f for force as float of first value from force guage lines
                 if x[2]=='Live Tension': #create a small condition that if tension is detected from readlines, make force negative value
-                    f=f*-1 
-                
+                    f=f*-1
+                F =("0%.1f" % f)
+                #F =("%.1f" % f)
+                display.print(F)
                 dd1.write(f"{t:.4f} {f:.4f} {d:.4f}\n")
                 #dd2.write(f"{t:.4f} {f:.4f} {d:.4f}\n")#write time force and distance into file dd
                 print(t)
                 dd1.flush()
                 #dd2.flush()
                 time.sleep(0.033)
-                switch1=GPIO.input(5)
-                switch2=GPIO.input(26)
+                switch1=GPIO.input(12)
+                switch2=GPIO.input(16)
                 if switch1 == True:
                     break
